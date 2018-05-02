@@ -11,28 +11,38 @@ import java.util.Deque;
 
 /**
  * Concrete Kernel type
- * 
+ *
  * @author Stephan Jamieson
  * @version 8/3/15
  */
 public class FCFSKernel implements Kernel {
-    
+
 
     private Deque<ProcessControlBlock> readyQueue;
-        
+    private CPU cpu;
+
     public FCFSKernel() {
 		// Set up the ready queue.
+    readyQueue = new ArrayDeque();
+    cpu = new CPU();
     }
-    
+
     private ProcessControlBlock dispatch() {
 		// Perform context switch, swapping process
 		// currently on CPU with one at front of ready queue.
 		// If ready queue empty then CPU goes idle ( holds a null value).
 		// Returns process removed from CPU.
+    ProcessControlBlock previousProcess = null;
+    if(!readyQueue.isEmpty())
+    {
+      previous = cpu.contextSwitch(readyQueue.getFirst());
+      //cpu.execute();//execute the process that was just put in
+    }
+    return previousProcess;
 	}
-            
-    
-                
+
+
+
     public int syscall(int number, Object... varargs) {
         int result = 0;
         switch (number) {
@@ -42,37 +52,57 @@ public class FCFSKernel implements Kernel {
                     Config.addDevice(device);
                 }
                 break;
-             case EXECVE: 
+             case EXECVE:
                 {
                     ProcessControlBlock pcb = this.loadProgram((String)varargs[0]);
-                    if (pcb!=null) {
+                    if (pcb!=null)
+                    {
                         // Loaded successfully.
-						// Now add to end of ready queue.
-						// If CPU idle then call dispatch.
+						            // Now add to end of ready queue.
+                        this.readyQueue.addLast(pcb);
+
+                        // If CPU idle then call dispatch.
+                        if(this.cpu.isIdle())
+                        {
+                          dispatch();
+                          //readyQueue.addLast(pcb); //removes executing process and add it to the tail of the queue
+                        }
                     }
                     else {
                         result = -1;
                     }
                 }
                 break;
-             case IO_REQUEST: 
+             case IO_REQUEST:
                 {
 					// IO request has come from process currently on the CPU.
 					// Get PCB from CPU.
+          ProcessControlBlock currentPCB = cpu.getCurrentProcess();
 					// Find IODevice with given ID: Config.getDevice((Integer)varargs[0]);
+          IODevice device = Config.getDevice((Integer)varargs[0]); //might need to point to a config obj not class
 					// Make IO request on device providing burst time (varages[1]),
 					// the PCB of the requesting process, and a reference to this kernel (so // that the IODevice can call interrupt() when the request is completed.
 					//
+          device.requestIO(varags[1],currentPCB, this);
+
 					// Set the PCB state of the requesting process to WAITING.
-					// Call dispatch().
+          currentPCB.setState(ProcessControlBlock.State.WAITING);
+
+          // Call dispatch().
+          dispatch();
                 }
                 break;
              case TERMINATE_PROCESS:
                 {
 					// Process on the CPU has terminated.
 					// Get PCB from CPU.
+          ProcessControlBlock terminatedProcess = cpu.getCurrentProcess();
+
 					// Set status to TERMINATED.
-                    // Call dispatch().
+          terminatedProcess.setState(ProcessControlBlock.State.TERMINATED);
+
+          // Call dispatch().
+          dispatch();
                 }
                 break;
              default:
@@ -80,8 +110,8 @@ public class FCFSKernel implements Kernel {
         }
         return result;
     }
-   
-    
+
+
     public void interrupt(int interruptType, Object... varargs){
         switch (interruptType) {
             case TIME_OUT:
@@ -90,13 +120,26 @@ public class FCFSKernel implements Kernel {
 				// IODevice has finished an IO request for a process.
 				// Retrieve the PCB of the process (varargs[1]), set its state
 				// to READY, put it on the end of the ready queue.
-				// If CPU is idle then dispatch().
+        for(ArrayDeque pcb: readyQueue)
+        {
+          if(pcb.getPID() == varargs[1])
+          {
+            pcb.setState(ProcessControlBlock.State.READY);
+            readyQueue.addLast(pcb);
+
+            // If CPU is idle then dispatch().
+            if(cpu.isIdle())
+            {
+              dispatch();
+            }
+          }
+        }
                 break;
             default:
                 throw new IllegalArgumentException("FCFSKernel:interrupt("+interruptType+"...): unknown type.");
         }
     }
-    
+
     private static ProcessControlBlock loadProgram(String filename) {
         try {
             return ProcessControlBlockImpl.loadProgram(filename);
@@ -108,4 +151,6 @@ public class FCFSKernel implements Kernel {
             return null;
         }
     }
+
+    private void setCPU(CPU cpu){this.cpu = cpu;}
 }
