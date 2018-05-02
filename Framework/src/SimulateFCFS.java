@@ -1,14 +1,32 @@
 import java.util.Scanner;
+import simulator.ProcessControlBlock;
+import FCFSKernel;
+
 public class SimulateFCFS
 {
   private Scanner input;
   private String configFileName;
+  private FCFSKernel kernel;
 
   private int syscall_cost;
   private int switch_cost;
   private int trace_level;
+  private Config configObject;
 
-  public void simulateMenu() // prints out the menu and get user input
+  public SimulateFCFS()
+  {
+    kernel = new FCFSKernel();
+    config = new Config();
+
+    simulateMenu(); // print menu
+
+    config.init(kernel, this.switch_cost, this.syscall_cost) ;
+    kernel.setCPU(config.getCPU());
+    config.buildConfiguration(this.configFileName);
+    config.run();
+  }
+
+  private void simulateMenu() // prints out the menu and get user input
   {
     this.input = new Scanner(System.in);
     System.out.println("*** FCFS Simulator ***");
@@ -48,6 +66,14 @@ public class SimulateFCFS
 
   public static void main(String[] a)
   {
+    try
+    {
+      SimulateFCFS simulationObject = new SimulateFCFS();
+
+    }catch(Exception e)
+    {
+      System.out.println("Simulation error: "+ e.getMessage());
+    }
 
   }
 }
