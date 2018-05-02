@@ -12,21 +12,21 @@ import java.util.Scanner;
  * The class manages the configuration and running of a simulation.
  * <p>
  * It collates the hardware components: clock, cpu, and I/O devices.
- * Classes such as concrete Kernels can access these components here. 
- * 
+ * Classes such as concrete Kernels can access these components here.
+ *
  * @author Stephan Jamieson
  * @version 13/3/16
  */
 public class Config {
 
     private Config() {}
-    
+
     private static SimulationClock clock;
     private static EventScheduler scheduler;
     private static CPU cpu;
     private static Kernel kernel;
-    private static Map<Integer, IODevice> devices = new HashMap<Integer, IODevice>();    
-    
+    private static Map<Integer, IODevice> devices = new HashMap<Integer, IODevice>();
+
     static SimulationClock getSimulationClock() { return Config.clock; }
     static EventScheduler getEventScheduler() { return Config.scheduler; }
     static Kernel getKernel() { return kernel;}
@@ -36,24 +36,24 @@ public class Config {
 	 * Obtain the SystemTimer used in the current configuration.
 	 */
     public static SystemTimer getSystemTimer() { return Config.getSimulationClock(); }
-	
+
 	/**
 	 * Obtain the CPU used in the current configuration.
 	 */
     public static CPU getCPU() { return Config.cpu; }
-    
+
 	/**
 	 * Add an IODevice to the configuration.
 	 */
     public static void addDevice(IODevice device) { devices.put(device.getID(), device); }
-	
-	/** 
+
+	/**
 	 * Obtain the IODevice with the given ID.
 	 */
     public static IODevice getDevice(int ID) { return devices.get(ID); }
-    
+
 	/**
-	 * Create an initial simulation configuration that uses the given kernel, context switch cost and 
+	 * Create an initial simulation configuration that uses the given kernel, context switch cost and
 	 * system call cost.
 	 */
     public static void init(Kernel kernel, int cSwitchCost, int sysCallCost) {
@@ -62,22 +62,22 @@ public class Config {
         Config.cpu=new CPU();
         Config.kernel=kernel;
     }
-    
-	/** 
+
+	/**
 	 * Run the configured simulation (the init() and buildConfiguration() methods must be called first).
 	 */
     public static void run() {
         Config.clock.setSystemTime(0);
         Config.scheduler.run();
 	}
-	   
+
     /**
 	 * Complete the simulation configuration by uploading the given config file.
 	 */
     public static void buildConfiguration(String filename) {
         try {
             final BufferedReader reader = new BufferedReader(new FileReader(filename));
-            
+
             String line = reader.readLine().trim();
             while (line!=null) {
                 if (line.startsWith("#") || line.equals("")) {
@@ -103,7 +103,7 @@ public class Config {
                         System.out.println("PROGRAM entry missing program name: \""+line+"\".");
                         System.exit(-1);
                     }
-                    Config.scheduler.schedule(new ExecveEvent(startTime, scanner.next(), priority, Config.getKernel())); 
+                    Config.scheduler.schedule(new ExecveEvent(startTime, scanner.next(), priority, Config.getKernel()));
                 }
                 else if (line.startsWith("DEVICE")) {
                     Scanner scanner = new Scanner(line);
@@ -141,6 +141,6 @@ public class Config {
         catch (IOException ioExc) {
             System.out.println("IO Error reading from \""+filename+"\".");
             System.exit(-1);
-        }        
+        }
     }
 }
