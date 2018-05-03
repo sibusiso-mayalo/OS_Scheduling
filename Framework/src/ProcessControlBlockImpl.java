@@ -106,10 +106,4 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
   {
     return this.pid +" "+ this.currentState +" "+ this.programName;
   }
-
-
-
-
-
-
 }
