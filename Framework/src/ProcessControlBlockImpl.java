@@ -40,7 +40,7 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     this.currentInstruction = this.instruction.getFirst();
   }
 
-  public ProcessControlBlockImpl(String filename)
+  /* public ProcessControlBlockImpl(String filename)
   {
     this.programName = filename;
     this.pid = generate_PID();
@@ -48,11 +48,18 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     this.currentState = ProcessControlBlock.State.READY;
     this.instruction = new ArrayDeque();
     this.currentInstruction = null;
-  }
+  }*/
 
   public ProcessControlBlock loadProgram(String filename)
   {
-    ProcessControlBlock(filename);
+    /* Initialization of variables*/
+    this.programName = filename;
+    this.pid = generate_PID();
+    //sthis.priority = generate_priority();
+    this.currentState = ProcessControlBlock.State.READY;
+    this.instruction = new ArrayDeque();
+    
+    /* Implementation of loadProgram*/
     ProcessControlBlock parentBlock = this;
     File openFile;
     try
