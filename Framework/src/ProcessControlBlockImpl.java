@@ -9,15 +9,15 @@ import simulator.IOInstruction;
 import java.io.FileNotFoundException;
 abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
 {
-  private int priority;
-  private int pid;
-  private String programName;
-  private State currentState;
-  private Instruction currentInstruction;
-  private ArrayDeque<Instruction> instruction;
-  static Random random;
+  private static int priority;
+  private static int pid;
+  private static String programName;
+  private static State currentState;
+  private static Instruction currentInstruction;
+  private static ArrayDeque<Instruction> instruction;
+  private static Random random;
 
-  private int generate_PID(){return random.nextInt();}
+  private static int generate_PID(){return random.nextInt();}
   private int generate_priority(){
     int i = -1;
     while(!(i>-1 && i<5))
@@ -50,17 +50,17 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     this.currentInstruction = null;
   }*/
 
-  public static ProcessControlBlock loadProgram(String filename)
+  public ProcessControlBlock loadProgram(String filename)
   {
     /* Initialization of variables*/
-    this.programName = filename;
-    this.pid = generate_PID();
+    programName = filename;
+    pid = generate_PID();
     //sthis.priority = generate_priority();
-    this.currentState = ProcessControlBlock.State.READY;
-    this.instruction = new ArrayDeque();
+    currentState = ProcessControlBlock.State.READY;
+    instruction = new ArrayDeque();
 
     /* Implementation of loadProgram*/
-    ProcessControlBlock parentBlock = this;
+
     File openFile;
     try
     {
@@ -97,8 +97,8 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     {
       System.out.println("Could not open file:" + exception.getMessage());
     }
-    this.currentInstruction = instruction.getFirst();
-    return parentBlock;
+    currentInstruction = instruction.getFirst();
+    return this;
   }
 
   public boolean hasNextInstruction()
@@ -112,6 +112,6 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
 
   public String toString()
   {
-    return this.pid +" "+ this.currentState +" "+ this.programName;
+    return pid +" "+ currentState +" "+ programName;
   }
 }
