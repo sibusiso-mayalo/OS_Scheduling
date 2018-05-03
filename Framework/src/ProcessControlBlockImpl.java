@@ -50,7 +50,7 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     this.currentInstruction = null;
   }*/
 
-  public ProcessControlBlock loadProgram(String filename)
+  public static ProcessControlBlock loadProgram(String filename)
   {
     /* Initialization of variables*/
     this.programName = filename;
@@ -58,7 +58,7 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
     //sthis.priority = generate_priority();
     this.currentState = ProcessControlBlock.State.READY;
     this.instruction = new ArrayDeque();
-    
+
     /* Implementation of loadProgram*/
     ProcessControlBlock parentBlock = this;
     File openFile;
