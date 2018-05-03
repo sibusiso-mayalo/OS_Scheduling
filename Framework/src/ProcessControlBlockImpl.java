@@ -52,6 +52,7 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
 
   public ProcessControlBlock loadProgram(String filename)
   {
+    ProcessControlBlock(filename);
     ProcessControlBlock parentBlock = this;
     File openFile;
     try
