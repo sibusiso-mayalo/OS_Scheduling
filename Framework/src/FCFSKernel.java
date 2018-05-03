@@ -17,14 +17,11 @@ import java.util.Deque;
  */
 public class FCFSKernel implements Kernel {
 
-
     private Deque<ProcessControlBlock> readyQueue;
-    private CPU cpu;
 
     public FCFSKernel() {
 		// Set up the ready queue.
     readyQueue = new ArrayDeque();
-    cpu = new CPU();
     }
 
     private ProcessControlBlock dispatch() {
@@ -35,13 +32,11 @@ public class FCFSKernel implements Kernel {
     ProcessControlBlock previousProcess = null;
     if(!readyQueue.isEmpty())
     {
-      previous = cpu.contextSwitch(readyQueue.getFirst());
-      //cpu.execute();//execute the process that was just put in
+      previousProcess = Config.getCPU().contextSwitch(readyQueue.pop());
+      cpu.execute();//execute the process that was just put in
     }
     return previousProcess;
 	}
-
-
 
     public int syscall(int number, Object... varargs) {
         int result = 0;
@@ -62,7 +57,7 @@ public class FCFSKernel implements Kernel {
                         this.readyQueue.addLast(pcb);
 
                         // If CPU idle then call dispatch.
-                        if(this.cpu.isIdle())
+                        if(Config.getCPU().isIdle())
                         {
                           dispatch();
                           //readyQueue.addLast(pcb); //removes executing process and add it to the tail of the queue
@@ -77,13 +72,13 @@ public class FCFSKernel implements Kernel {
                 {
 					// IO request has come from process currently on the CPU.
 					// Get PCB from CPU.
-          ProcessControlBlock currentPCB = cpu.getCurrentProcess();
+          ProcessControlBlock currentPCB = Config.getCPU().getCurrentProcess();
 					// Find IODevice with given ID: Config.getDevice((Integer)varargs[0]);
           IODevice device = Config.getDevice((Integer)varargs[0]); //might need to point to a config obj not class
 					// Make IO request on device providing burst time (varages[1]),
 					// the PCB of the requesting process, and a reference to this kernel (so // that the IODevice can call interrupt() when the request is completed.
 					//
-          device.requestIO(varags[1],currentPCB, this);
+          device.requestIO((int)varargs[1],currentPCB, this);
 
 					// Set the PCB state of the requesting process to WAITING.
           currentPCB.setState(ProcessControlBlock.State.WAITING);
@@ -96,7 +91,7 @@ public class FCFSKernel implements Kernel {
                 {
 					// Process on the CPU has terminated.
 					// Get PCB from CPU.
-          ProcessControlBlock terminatedProcess = cpu.getCurrentProcess();
+          ProcessControlBlock terminatedProcess = Config.getCPU().getCurrentProcess();
 
 					// Set status to TERMINATED.
           terminatedProcess.setState(ProcessControlBlock.State.TERMINATED);
@@ -120,15 +115,15 @@ public class FCFSKernel implements Kernel {
 				// IODevice has finished an IO request for a process.
 				// Retrieve the PCB of the process (varargs[1]), set its state
 				// to READY, put it on the end of the ready queue.
-        for(ArrayDeque pcb: readyQueue)
+        for(ProcessControlBlock pcb: readyQueue)
         {
-          if(pcb.getPID() == varargs[1])
+          if(pcb.getPID() == (int)varargs[1])
           {
             pcb.setState(ProcessControlBlock.State.READY);
             readyQueue.addLast(pcb);
 
             // If CPU is idle then dispatch().
-            if(cpu.isIdle())
+            if(Config.getCPU().isIdle())
             {
               dispatch();
             }
@@ -141,16 +136,16 @@ public class FCFSKernel implements Kernel {
     }
 
     private static ProcessControlBlock loadProgram(String filename) {
-        try {
-            return ProcessControlBlockImpl.loadProgram(filename);
-        }
-        catch (FileNotFoundException fileExp) {
+      try
+      {
+        return ProcessControlBlockImpl.loadProgram(filename);
+      }
+      catch (FileNotFoundException fileExp) {
             return null;
         }
         catch (IOException ioExp) {
             return null;
         }
+        return pcb_with_instructions;
     }
-
-    private void setCPU(CPU cpu){this.cpu = cpu;}
 }

@@ -1,6 +1,5 @@
 import java.util.Scanner;
 import simulator.ProcessControlBlock;
-import FCFSKernel;
 
 public class SimulateFCFS
 {
