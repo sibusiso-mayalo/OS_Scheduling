@@ -34,10 +34,10 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
   public State getState(){return this.currentState;}
 
   public void setState(State state){this.currentState = state;}
+
   public void nextInstruction(){
     this.currentInstruction = this.instruction.pop();
     this.currentInstruction = this.instruction.getFirst();
-
   }
 
   public ProcessControlBlockImpl(String filename)
@@ -106,5 +106,10 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
   {
     return this.pid +" "+ this.currentState +" "+ this.programName;
   }
+
+
+
+
+
 
 }
