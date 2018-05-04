@@ -33,7 +33,7 @@ public class FCFSKernel implements Kernel {
     if(!readyQueue.isEmpty())
     {
       previousProcess = Config.getCPU().contextSwitch(readyQueue.pop());
-      Config.getCPU().execute();//execute the process that was just put in
+      //int result = Config.getCPU().execute(readyQueue.getFirst().getInstruction().getDuration());//execute the process that was just put in
     }
     return previousProcess;
 	}
@@ -138,16 +138,12 @@ public class FCFSKernel implements Kernel {
     private static ProcessControlBlock loadProgram(String filename) {
       try
       {
-        ProcessControlBlockImpl pcbImpl = new ProcessControlBlockImpl(filename);
-
-        return pcbImpl.loadProgram();
+        ProcessControlBlockImpl im = new ProcessControlBlockImpl();
+        return im.loadProgram(filename);
       }
-      catch (FileNotFoundException fileExp) {
+      catch (Exception fileExp) {
             return null;
         }
-        catch (IOException ioExp) {
-            return null;
-        }
-        return pcb_with_instructions;
+      
     }
 }
