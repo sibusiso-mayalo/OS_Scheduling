@@ -7,7 +7,7 @@ import java.util.Scanner;
 import simulator.CPUInstruction;
 import simulator.IOInstruction;
 import java.io.FileNotFoundException;
-abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
+class ProcessControlBlockImpl implements simulator.ProcessControlBlock
 {
   private static int priority;
   private static int pid;
@@ -16,6 +16,12 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
   private static Instruction currentInstruction;
   private static ArrayDeque<Instruction> instruction;
   private static Random random;
+  private ProcessControlBlockImpl pcbImpl;
+
+  public ProcessControlBlockImpl()
+  {
+
+  }
 
   private static int generate_PID(){return random.nextInt();}
   private int generate_priority(){
@@ -34,6 +40,12 @@ abstract class ProcessControlBlockImpl implements simulator.ProcessControlBlock
   public State getState(){return this.currentState;}
 
   public void setState(State state){this.currentState = state;}
+  public int setPriority(int new_priority)
+  {
+    int previousPriority = priority;
+    priority = new_priority;
+    return previousPriority;
+  }
 
   public void nextInstruction(){
     this.currentInstruction = this.instruction.pop();
