@@ -8,6 +8,7 @@ import java.io.IOException;
 //
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.ArrayList;
 
 /**
  * Concrete Kernel type
@@ -24,7 +25,8 @@ public class FCFSKernel implements Kernel {
     readyQueue = new ArrayDeque();
     }
 
-    private ProcessControlBlock dispatch() {
+    private ProcessControlBlock dispatch()
+    {
 		// Perform context switch, swapping process
 		// currently on CPU with one at front of ready queue.
 		// If ready queue empty then CPU goes idle ( holds a null value).
@@ -33,8 +35,14 @@ public class FCFSKernel implements Kernel {
     if(!readyQueue.isEmpty())
     {
       previousProcess = Config.getCPU().contextSwitch(readyQueue.pop());
-      //int result = Config.getCPU().execute(readyQueue.getFirst().getInstruction().getDuration());//execute the process that was just put in
+      this.readyQueue = removeHead(this.readyQueue);
+      Config.getCPU().getCurrentProcess().setState(ProcessControlBlock.State.RUNNING);
+}
+    else
+    {
+        previousProcess = Config.getCPU().contextSwitch(null);
     }
+
     return previousProcess;
 	}
 
@@ -50,6 +58,7 @@ public class FCFSKernel implements Kernel {
              case EXECVE:
                 {
                     ProcessControlBlock pcb = this.loadProgram((String)varargs[0]);
+
                     if (pcb!=null)
                     {
                         // Loaded successfully.
@@ -115,7 +124,35 @@ public class FCFSKernel implements Kernel {
 				// IODevice has finished an IO request for a process.
 				// Retrieve the PCB of the process (varargs[1]), set its state
 				// to READY, put it on the end of the ready queue.
+
+        ArrayList<ProcessControlBlock> arrList = new ArrayList<>();
         for(ProcessControlBlock pcb: readyQueue)
+        {
+          arrList.add(pcb);
+        }
+
+        //check index of pcb process
+        for(int i  = 0; i<arrList.size(); i++)
+        {
+          if(arrList.get(i).getPID() == (int)varargs[1])
+          {
+            arrList.get(i).setState(ProcessControlBlock.State.READY);
+            ProcessControlBlock temp = arrList.get(i);
+            arrList.remove(i);
+            arrList.add(arrList.size(),temp);
+            break;
+          }
+        }
+
+        //put all contents of arraylist in the dequeue
+        readyQueue = new ArrayDeque();
+
+        for(ProcessControlBlock pcb: arrList)
+        {
+          readyQueue.addFirst(pcb);
+        }
+
+      /*  for(ProcessControlBlock pcb: readyQueue)
         {
           if(pcb.getPID() == (int)varargs[1])
           {
@@ -128,6 +165,10 @@ public class FCFSKernel implements Kernel {
               dispatch();
             }
           }
+        }*/
+        if(Config.getCPU().isIdle())
+        {
+          dispatch();
         }
                 break;
             default:
@@ -144,6 +185,25 @@ public class FCFSKernel implements Kernel {
       catch (Exception fileExp) {
             return null;
         }
-      
+
+    }
+
+    private Deque<ProcessControlBlock> removeHead(Deque<ProcessControlBlock> queue)
+    {
+      ArrayList<ProcessControlBlock> tempStorage = new ArrayList<>();
+
+      for(ProcessControlBlock pcb: queue) //copy all items of queue to the temporary storage
+      {
+        tempStorage.add(pcb);
+      }
+
+      tempStorage.remove(0); // removing head
+
+      queue = new ArrayDeque();
+      for(ProcessControlBlock pcb: tempStorage)
+      {
+        queue.addFirst(pcb);
+      }
+      return queue;
     }
 }
